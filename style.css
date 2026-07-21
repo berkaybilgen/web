@@ -1,0 +1,186 @@
+/* ==========================================================================
+   Elif & Berkay — online davetiye
+   Mobil öncelikli tek ekran açılış
+   ========================================================================== */
+
+:root {
+  /* Görselin zemin rengi (assets/bg.png köşe pikselinden alındı) */
+  --paper: #f6f6f4;
+  --ink: #2b2b2b;
+  --ink-soft: #6b6660;
+  --hairline: #b9b2a8;
+
+  --font-script: "Parisienne", "Snell Roundhand", cursive;
+  --font-serif: "Cormorant Garamond", "Times New Roman", serif;
+
+  /* Görselin ekranda kapladığı yer (683 x 805 en-boy oranından).
+     Genişlik ya da yükseklik — hangisi önce sınıra dayanırsa o belirler,
+     böylece yazılar her ekranda çizimin hemen altında kalır. */
+  --img-w: min(100vw, 640px);
+  --img-h: min(58dvh, calc(var(--img-w) * 805 / 683));
+  --img-gap: 1.5rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--paper);
+}
+
+body {
+  height: 100dvh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  overflow: hidden; /* tek ekran: hiçbir boyutta kaydırma yok */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Hero ---------------------------------------------------------------- */
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 100dvh;
+  padding: env(safe-area-inset-top) 1.5rem
+           calc(env(safe-area-inset-bottom) + 1.5rem);
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.hero__img {
+  flex: none;
+  width: var(--img-w);
+  height: var(--img-h);
+  margin-bottom: var(--img-gap);
+  object-fit: contain;
+  object-position: center top;
+  animation: fade-in 1.4s ease-out both;
+}
+
+/* --- İçerik -------------------------------------------------------------- */
+
+.hero__content {
+  position: relative;
+  text-align: center;
+}
+
+.names {
+  font-family: var(--font-script);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--ink);
+}
+
+.names__first,
+.names__second {
+  display: block;
+  font-size: clamp(3.1rem, 17vw, 4.75rem);
+  animation: rise-in 1s ease-out both;
+}
+
+.names__first  { animation-delay: 0.25s; }
+.names__second { animation-delay: 0.55s; }
+
+.names__amp {
+  display: block;
+  margin: 0.15em 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 6.2vw, 1.8rem);
+  font-style: italic;
+  color: var(--ink-soft);
+  animation: rise-in 1s ease-out 0.4s both;
+}
+
+/* İnce ayraç */
+.rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 1.6rem auto 1.2rem;
+  width: min(62%, 15rem);
+  animation: fade-in 1.2s ease-out 0.85s both;
+}
+
+.rule__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--hairline), transparent);
+}
+
+.rule__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--hairline);
+}
+
+.date {
+  font-size: clamp(1.1rem, 4.9vw, 1.4rem);
+  font-weight: 400;
+  letter-spacing: 0.32em;
+  text-indent: 0.32em; /* letter-spacing kaynaklı sağa kaymayı dengeler */
+  color: var(--ink-soft);
+  animation: rise-in 1s ease-out 1s both;
+}
+
+/* --- Animasyonlar -------------------------------------------------------- */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__img,
+  .names__first,
+  .names__second,
+  .names__amp,
+  .rule,
+  .date {
+    animation: none;
+  }
+}
+
+/* --- Kısa ekranlar (iPhone SE, alçak masaüstü pencereleri) ---------------- */
+
+@media (max-height: 760px) {
+  :root {
+    --img-h: min(50dvh, calc(var(--img-w) * 805 / 683));
+    --img-gap: 0.9rem;
+  }
+
+  .names__first,
+  .names__second { font-size: clamp(2.4rem, 13vw, 3.25rem); }
+  .names__amp { font-size: clamp(1.15rem, 5vw, 1.4rem); }
+  .date { font-size: clamp(0.95rem, 4vw, 1.1rem); }
+  .rule { margin: 1rem auto 0.8rem; }
+}
+
+/* --- Çok alçak ekranlar (yatay telefon) ---------------------------------- */
+
+@media (max-height: 560px) {
+  :root {
+    --img-h: min(46dvh, calc(var(--img-w) * 805 / 683));
+    --img-gap: 0.6rem;
+  }
+
+  .names__first,
+  .names__second { font-size: clamp(1.9rem, 11vw, 2.5rem); }
+  .names__amp { font-size: 1rem; margin: 0.1em 0; }
+  .date { font-size: 0.9rem; }
+  .rule { margin: 0.7rem auto 0.6rem; }
+}
