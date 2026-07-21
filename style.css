@@ -1,6 +1,6 @@
 /* ==========================================================================
    Elif & Berkay — online davetiye
-   Mobil öncelikli tek ekran açılış
+   Mobil öncelikli, tam ekran bölümlerden oluşan tek sayfa
    ========================================================================== */
 
 :root {
@@ -30,28 +30,68 @@
 html {
   -webkit-text-size-adjust: 100%;
   background: var(--paper);
+
+  /* Her bölüm ekrana tam oturur: kaydırma serbest değil, ekrandan ekrana geçer */
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
+html::-webkit-scrollbar { display: none; }
+
 body {
-  height: 100dvh;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-serif);
-  overflow: hidden; /* tek ekran: hiçbir boyutta kaydırma yok */
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
   -webkit-font-smoothing: antialiased;
 }
 
-/* --- Hero ---------------------------------------------------------------- */
+/* --- Bölümler ------------------------------------------------------------ */
+
+.section {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Yalnızca ikon tanımlarını taşır, kendisi görünmez */
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon--lg {
+  width: 1.9rem;
+  height: 1.9rem;
+  stroke-width: 1.1;
+}
+
+/* --- 1. Ekran: kapak ----------------------------------------------------- */
 
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 100dvh;
   padding: env(safe-area-inset-top) 1.5rem
            calc(env(safe-area-inset-bottom) + 1.5rem);
-  overflow: hidden;
   background: var(--paper);
 }
 
@@ -68,7 +108,11 @@ body {
 /* Masaüstünde görsel tam genişliği kaplamadığı için kompozisyonu dikeyde
    ortalamak daha dengeli duruyor; mobilde görsel ekranın tepesine yaslı kalır. */
 @media (min-width: 700px) {
-  .hero { justify-content: center; }
+  .hero {
+    justify-content: center;
+    /* Ortalanan içerik ile kaydırma ipucu çakışmasın */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 5rem);
+  }
 }
 
 /* --- İçerik -------------------------------------------------------------- */
@@ -138,6 +182,267 @@ body {
   animation: rise-in 1s ease-out 1s both;
 }
 
+/* Kaydırma ipucu */
+.scroll-cue {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 1rem);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+  animation: fade-in 1.2s ease-out 1.6s both;
+  transition: opacity 0.5s ease;
+}
+
+.scroll-cue.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scroll-cue__text {
+  font-size: 0.68rem;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  text-transform: uppercase;
+}
+
+.scroll-cue__icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  animation: nudge 2.4s ease-in-out infinite;
+}
+
+/* --- 2. Ekran: detaylar -------------------------------------------------- */
+
+.details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 5dvh) 1.5rem
+           calc(env(safe-area-inset-bottom) + 3.5dvh);
+  text-align: center;
+  background: var(--paper);
+}
+
+/* Üst ve alt blok kalan yüksekliği paylaşır; monogram ortaya denk gelir */
+.details__top {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+.details__label {
+  margin-bottom: 1.1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  text-transform: uppercase;
+  color: var(--hairline);
+}
+
+/* --- Tarih bloğu (üst yarı) ---------------------------------------------- */
+
+.datecard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 20rem);
+  margin: 0 auto;
+  color: var(--ink);
+}
+
+.datecard__rule {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--hairline), transparent);
+  transform: scaleX(0);
+}
+
+.datecard__month {
+  margin: 0.55rem 0 0.1rem;
+  font-size: clamp(0.9rem, 4vw, 1.05rem);
+  letter-spacing: 0.4em;
+  text-indent: 0.4em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0;
+}
+
+.datecard__day {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: clamp(5rem, 27vw, 7.5rem);
+  font-weight: 300;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+
+  /* Mürekkep soldan sağa çekiliyormuş gibi açılır */
+  clip-path: inset(0 100% 0 0);
+}
+
+.datecard__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  font-size: clamp(1rem, 4.6vw, 1.2rem);
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  color: var(--ink-soft);
+  opacity: 0;
+}
+
+/* Bloğun kendisi göründükten sonra parçalar sırayla çizilir */
+.details__top.is-visible .datecard__rule--top {
+  animation: draw-rule 0.9s ease-out 0.1s both;
+}
+
+.details__top.is-visible .datecard__month {
+  animation: rise-in 0.7s ease-out 0.45s both;
+}
+
+.details__top.is-visible .datecard__day {
+  animation: ink-sweep 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) 0.65s both;
+}
+
+.details__top.is-visible .datecard__rule--bottom {
+  animation: draw-rule 0.9s ease-out 1.2s both;
+}
+
+.details__top.is-visible .datecard__time {
+  animation: rise-in 0.7s ease-out 1.5s both;
+}
+
+/* Ortadaki monogram süsü */
+.ornament {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: min(78%, 20rem);
+  margin: 1.4rem 0;
+}
+
+.ornament__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--hairline), transparent);
+}
+
+.ornament__mark {
+  font-family: var(--font-script);
+  font-size: clamp(1.6rem, 7vw, 2.1rem);
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+/* --- Konum bloğu (alt yarı) ---------------------------------------------- */
+
+.details__bottom {
+  flex: 1.35 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 30rem;
+  min-height: 0; /* iframe'in esneyebilmesi için */
+}
+
+.venue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: clamp(1.3rem, 5.8vw, 1.7rem);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.venue .icon {
+  width: 1em;
+  height: 1em;
+  color: var(--ink-soft);
+}
+
+.map-frame {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 8rem;
+  margin: 1rem 0 1.1rem;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #eceae6;
+}
+
+.map-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+
+  /* Harita, kalem çizimiyle aynı dilde dursun; üzerine gelince renklenir */
+  filter: grayscale(1) contrast(0.92);
+  transition: filter 0.5s ease;
+}
+
+.map-frame:hover iframe,
+.map-frame:focus-within iframe {
+  filter: none;
+}
+
+.maps-link {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.maps-link:hover,
+.maps-link:focus-visible {
+  background: rgba(43, 43, 43, 0.05);
+  border-color: var(--ink-soft);
+}
+
+.maps-link .icon {
+  width: 0.95em;
+  height: 0.95em;
+  color: var(--ink-soft);
+}
+
+/* Detay ekranı görünür olunca içerik sırayla belirir (app.js) */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.ornament.reveal        { transition-delay: 0.18s; }
+.details__bottom.reveal { transition-delay: 0.36s; }
+
 /* --- Animasyonlar -------------------------------------------------------- */
 
 @keyframes fade-in {
@@ -150,15 +455,57 @@ body {
   to   { opacity: 1; transform: none; }
 }
 
+@keyframes nudge {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(5px); }
+}
+
+/* İnce çizgi ortadan iki yana doğru çizilir */
+@keyframes draw-rule {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Rakam soldan sağa doğru yazılıyormuş gibi açılır */
+@keyframes ink-sweep {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
   .hero__img,
   .names__first,
   .names__second,
   .names__amp,
   .rule,
-  .date {
+  .date,
+  .scroll-cue,
+  .scroll-cue__icon {
     animation: none;
   }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .datecard__rule  { transform: none; }
+  .datecard__month,
+  .datecard__time  { opacity: 1; }
+  .datecard__day   { clip-path: none; }
+
+  .details__top.is-visible .datecard__rule--top,
+  .details__top.is-visible .datecard__rule--bottom,
+  .details__top.is-visible .datecard__month,
+  .details__top.is-visible .datecard__day,
+  .details__top.is-visible .datecard__time {
+    animation: none;
+  }
+
+  .map-frame iframe { transition: none; }
 }
 
 /* --- Kısa ekranlar (iPhone SE, alçak masaüstü pencereleri) ---------------- */
@@ -174,11 +521,20 @@ body {
   .names__amp { font-size: clamp(1.15rem, 5vw, 1.4rem); }
   .date { font-size: clamp(0.95rem, 4vw, 1.1rem); }
   .rule { margin: 1rem auto 0.8rem; }
+
+  .details {
+    padding-top: calc(env(safe-area-inset-top) + 3.5dvh);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 3dvh);
+  }
+  .details__label { margin-bottom: 0.7rem; }
+  .datecard__day { font-size: clamp(3.75rem, 20vw, 5rem); }
+  .ornament { margin: 1rem 0; }
+  .map-frame { margin: 0.8rem 0 0.9rem; }
 }
 
-/* --- Çok alçak ekranlar (yatay telefon) ---------------------------------- */
+/* --- Çok alçak ekranlar (iPhone SE, yatay telefon) ----------------------- */
 
-@media (max-height: 560px) {
+@media (max-height: 620px) {
   :root {
     --img-h: min(46dvh, calc(var(--img-w) * 805 / 683));
     --img-gap: 0.6rem;
@@ -189,4 +545,18 @@ body {
   .names__amp { font-size: 1rem; margin: 0.1em 0; }
   .date { font-size: 0.9rem; }
   .rule { margin: 0.7rem auto 0.6rem; }
+
+  .details {
+    padding-top: calc(env(safe-area-inset-top) + 2.5dvh);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 2.5dvh);
+  }
+  .details__label { display: none; }
+  .datecard__day { font-size: clamp(2.75rem, 15vw, 3.5rem); }
+  .datecard__month { font-size: 0.8rem; }
+  .datecard__time { margin-top: 0.4rem; font-size: 0.9rem; }
+  .ornament { margin: 0.7rem 0; }
+  .venue { font-size: 1.15rem; }
+  .map-frame { margin: 0.6rem 0 0.7rem; }
+  .maps-link { padding: 0.5rem 1.1rem; }
+  .scroll-cue { display: none; }
 }
